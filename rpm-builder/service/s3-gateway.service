@@ -1,0 +1,14 @@
+[Unit]
+Description=galaxy-s3-gateway
+After=network.target network-online.target
+Requires=network.target
+
+[Service]
+Type=forking
+ExecStart=/opt/galaxy/galaxy-s3-gw/bin/run.sh
+ExecReload=killall galaxy-s3-gateway && /opt/galaxy/galaxy-s3-gw/bin/run.sh
+ExecStop=killall galaxy-s3-gateway
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

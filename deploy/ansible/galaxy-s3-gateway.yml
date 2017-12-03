@@ -1,0 +1,10 @@
+---
+- hosts: mongodb
+  tags: mongodb
+  roles:
+    - mongodb
+
+- hosts: galaxy-s3-gateway
+  tags: galaxy-s3-gateway
+  roles:
+    - galaxy-s3-gateway

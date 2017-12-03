@@ -1,0 +1,7 @@
+galaxy-s3-gateway-01   ansible_ssh_host=192.168.100.100
+
+[galaxy-s3-gateway]
+galaxy-s3-gateway-01
+
+[mongodb]
+galaxy-s3-gateway-01
