@@ -91,8 +91,7 @@ func UploadPartHandler(w http.ResponseWriter, r *http.Request) {
 	objectName := mux.Vars(r)["object"]
 	bucket := mux.Vars(r)["bucket"]
 
-	var bucketObject *db.Bucket
-	bucketObject, err = db.ActiveService().GetBucket(bucket)
+	_, err = db.ActiveService().GetBucket(bucket)
 	if err != nil {
 		if err == db.BucketNotExistError {
 			resp = handler.WrapS3ErrorResponseForRequest(http.StatusNotFound, r, "NoSuchBucket", "/"+bucket+objectName)
