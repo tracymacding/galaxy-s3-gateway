@@ -9,10 +9,10 @@ import (
 	"galaxy-s3-gateway/mux"
 	// "galaxy-s3-gateway/utils/md5"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
-	"fmt"
 )
 
 func parseContentLength(req *http.Request) (int64, error) {
@@ -42,7 +42,7 @@ func validateContentLength(req *http.Request) (int64, error) {
 }
 
 type S3PutObjectResponse struct {
-	etag  string
+	etag string
 }
 
 func (resp *S3PutObjectResponse) Send(w http.ResponseWriter) {
@@ -89,7 +89,7 @@ func PutObjectHandler(w http.ResponseWriter, r *http.Request) {
 
 	var fid, objectMd5 string
 	if size > 0 {
-		fid, objectMd5, err = fs.PutObject(bucketObject.UserID, size, r.Body, context.Get(r, "req_id").(string))
+		fid, objectMd5, err = fs.PutObject(bucket, size, r.Body, context.Get(r, "req_id").(string))
 		if err != nil {
 			resp = handler.WrapS3ErrorResponseForRequest(http.StatusInternalServerError, r, "InternalError", "/"+objectPath)
 			return
@@ -97,12 +97,12 @@ func PutObjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	objectMeta := &db.Object{
-		ObjectName:    objectName,
-		Fid:           fid,
-		Etag:          fmt.Sprintf("%s%s%s", "\"", objectMd5, "\""),
-		Bucket:        bucketObject.BucketName,
-		Size:          size,
-		LastModified:  time.Now().Unix(),
+		ObjectName:   objectName,
+		Fid:          fid,
+		Etag:         fmt.Sprintf("%s%s%s", "\"", objectMd5, "\""),
+		Bucket:       bucketObject.BucketName,
+		Size:         size,
+		LastModified: time.Now().Unix(),
 	}
 
 	if err = db.ActiveService().PutObject(objectMeta, bucketObject.VersionEnabled); err != nil {

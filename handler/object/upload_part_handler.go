@@ -1,17 +1,17 @@
 package object
 
 import (
+	"errors"
+	"fmt"
 	"galaxy-s3-gateway/context"
 	"galaxy-s3-gateway/db"
 	"galaxy-s3-gateway/fs"
 	"galaxy-s3-gateway/gerror"
 	"galaxy-s3-gateway/handler"
 	"galaxy-s3-gateway/mux"
-	"errors"
 	"net/http"
 	"strconv"
 	"time"
-	"fmt"
 )
 
 func parsePartNumber(r *http.Request) (int, error) {
@@ -27,7 +27,7 @@ func parsePartNumber(r *http.Request) (int, error) {
 }
 
 var (
-	AbortedUploadError = errors.New("upload has been aborted")
+	AbortedUploadError    = errors.New("upload has been aborted")
 	InvalidPartOrderError = errors.New("invalid part order")
 )
 
@@ -61,7 +61,7 @@ func validateUploadId(uploadId string) error {
 //}
 
 type S3UploadPartResponse struct {
-	etag  string
+	etag string
 }
 
 func (resp *S3UploadPartResponse) Send(w http.ResponseWriter) {
@@ -131,15 +131,18 @@ func UploadPartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 根据S3的API定义,这里可能会返回InvalidPart和InvalidPartOrder两种错误
-	// InvalidPart: 
+	// InvalidPart:
 	// InvalidPartOrder: 上传的part顺序错误
 	//if err = validatePartNumber(uploadId, partNumber); err != nil {
 	//	resp = handler.WrapS3ErrorResponseForRequest(http.StatusBadRequest, r, "InvalidPartOrder", "/")
 	//	return
 	//}
 
-	var fid, partMd5 string
-	fid, partMd5, err = fs.PutObject(bucketObject.UserID, size, r.Body, context.Get(r, "req_id").(string))
+	var (
+		fid     string
+		partMd5 string
+	)
+	fid, partMd5, err = fs.PutObject(bucket, size, r.Body, context.Get(r, "req_id").(string))
 	if err != nil {
 		resp = handler.WrapS3ErrorResponseForRequest(http.StatusInternalServerError, r, "InternalError", "/"+objectPath)
 		return
@@ -150,7 +153,7 @@ func UploadPartHandler(w http.ResponseWriter, r *http.Request) {
 		Fid:          fid,
 		Number:       partNumber,
 		Size:         size,
-		LastModified: time.Now().Unix(),  
+		LastModified: time.Now().Unix(),
 		Etag:         fmt.Sprintf("%s%s%s", "\"", partMd5, "\""),
 	}
 
