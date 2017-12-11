@@ -33,6 +33,10 @@ func parseRangeHeader(r *http.Request) (int64, int64, error) {
 	if err != nil {
 		return -1, -1, err
 	}
+	// range maybe '123-'
+	if rangeOffsets[1] == "" {
+		return start, math.MaxInt64, nil
+	}
 	end, err := strconv.ParseInt(rangeOffsets[1], 10, 64)
 	if err != nil {
 		return -1, -1, err
