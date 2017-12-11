@@ -151,7 +151,7 @@ func (ms *mongoService) DeleteObject(bucket, object, version string, versionEnab
 
 	collection := session.DB("galaxy_s3_gateway").C("objects")
 	// query := collection.Find(bson.M{"object_name": object, "version": version, "delete_marker": false})
-	query := collection.Find(bson.M{"object_name": object, "version": version})
+	query := collection.Find(bson.M{"bucket": bucket, "object_name": object, "version": version})
 	change := mgo.Change{
 		Update:    bson.M{"$set": bson.M{"delete_marker": true}},
 		ReturnNew: false,
