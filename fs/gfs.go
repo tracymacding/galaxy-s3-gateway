@@ -11,10 +11,11 @@ import (
 
 var fs sdk.FS
 
-func InitFS(master string) error {
+func InitFS(master string, schedulerPath string) error {
 	var err error
 	opt := &sdk.Option{
 		ZKAddr:    master,
+		SchedulerZKPath: schedulerPath,
 		Timeout:      time.Second * 10,
 		ConnPoolSize: 10,
 	}
@@ -32,7 +33,7 @@ func InitFS(master string) error {
 func PutObject(user string, size int64, input io.Reader, reqId string) (string, string, error) {
 	putRequest := &sdk.PutRequest{
 		User:     user,
-		Disk:     "sata",
+		Disk:     "ssd",
 		Replicas: 3,
 		Size:     size,
 		Input:    input,

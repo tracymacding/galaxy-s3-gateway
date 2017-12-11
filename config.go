@@ -12,6 +12,7 @@ var (
 	port       = flag.Int("port", 5333, "proxy listening port")
 	mongoDBAddr = flag.String("mongodb_addr", "127.0.0.1", "mongodb address")
 	gfsMaster   = flag.String("gfs_zk_addr", "127.0.0.1:2181", "galaxyfs zookeeper cluster address")
+	schedulerPath = flag.String("gfs_scheduler_path", "/1/galaxyfs/scheduler", "galaxyfs scheduler zookeeper path")
 	listenAddr  = flag.String("listen_addr", ":5050", "gateway serve address")
 )
 

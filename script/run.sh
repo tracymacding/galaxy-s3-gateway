@@ -19,7 +19,7 @@ done < $config_file
 
 mkdir -p $log_dir
 
-cd $BINDIR && nohup ./galaxy-s3-gateway -gfs_zk_addr=$zookeeper -log_dir=$log_dir -logtostderr=false -mongodb_addr=$mongodb_address -port=$listen_port > nohup.out 2>&1 &
+cd $BINDIR && nohup ./galaxy-s3-gateway -gfs_zk_addr=$zookeeper -log_dir=$log_dir -logtostderr=false -mongodb_addr=$mongodb_address -port=$listen_port -gfs_scheduler_path=$zk_scheduler_path > nohup.out 2>&1 &
 
 PID=$!
 sleep 1

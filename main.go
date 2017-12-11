@@ -117,7 +117,7 @@ func main() {
 		glog.Fatalf("init database error: %s", err)
 	}
 
-	err = fs.InitFS(*gfsMaster)
+	err = fs.InitFS(*gfsMaster, *schedulerPath)
 	if err != nil {
 		glog.Fatalf("init file system error: %s", err)
 	}
