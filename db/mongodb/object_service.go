@@ -2,28 +2,25 @@ package mongodb
 
 import (
 	"galaxy-s3-gateway/db"
+	"github.com/satori/go.uuid"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"github.com/satori/go.uuid"
 	"strings"
 )
 
 func (ms *mongoService) GetObject(bucket, objectName, version string, versionEnabled bool) (*db.Object, error) {
-
-	session, err := mgo.Dial(ms.servers)
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
 		return nil, err
-    	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 
 	// 如果开启version且version未设置(为"")
 	// 首先从object_versions获取object最新版本
 	if versionEnabled && version == "" {
 		var objectVersion db.ObjectVersion
 		collection := session.DB("galaxy_s3_gateway").C("object_versions")
-		err := collection.Find(bson.M{"_id": bucket+"/"+objectName}).One(&objectVersion)
+		err := collection.Find(bson.M{"_id": bucket + "/" + objectName}).One(&objectVersion)
 		if err != nil {
 			if err == mgo.ErrNotFound {
 				return nil, db.ObjectNotExistError
@@ -46,14 +43,11 @@ func (ms *mongoService) GetObject(bucket, objectName, version string, versionEna
 }
 
 func (ms *mongoService) PutObjectFromMultipartUpload(object *db.Object, versionEnabled bool) error {
-
-	session, err := mgo.Dial(ms.servers)
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
 		return err
-    	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 
 	// version功能开启,对象会被生成全局唯一version id
 	// 同时在object_versions表中记录当前version id
@@ -72,7 +66,7 @@ func (ms *mongoService) PutObjectFromMultipartUpload(object *db.Object, versionE
 	}
 	if versionEnabled {
 		objVersion := &db.ObjectVersion{
-			ObjectName: object.Bucket+"/"+object.ObjectName,
+			ObjectName: object.Bucket + "/" + object.ObjectName,
 			Version:    object.Version,
 		}
 		collection = session.DB("galaxy_s3_gateway").C("object_versions")
@@ -94,16 +88,12 @@ func (ms *mongoService) PutObjectFromMultipartUpload(object *db.Object, versionE
 	return nil
 }
 
-func (ms *mongoService)PutObject(object *db.Object, versionEnabled bool) error {
-
-	session, err := mgo.Dial(ms.servers)
+func (ms *mongoService) PutObject(object *db.Object, versionEnabled bool) error {
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
 		return err
-    	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 	// version功能开启,对象会被生成全局唯一version id
 	// 同时在object_versions表中记录当前version id
 	// 首先在objects表中插入对象记录
@@ -123,7 +113,7 @@ func (ms *mongoService)PutObject(object *db.Object, versionEnabled bool) error {
 	}
 	if versionEnabled {
 		objVersion := &db.ObjectVersion{
-			ObjectName: object.Bucket+"/"+object.ObjectName,
+			ObjectName: object.Bucket + "/" + object.ObjectName,
 			Version:    object.Version,
 		}
 		collection = session.DB("galaxy_s3_gateway").C("object_versions")
@@ -134,20 +124,17 @@ func (ms *mongoService)PutObject(object *db.Object, versionEnabled bool) error {
 	return nil
 }
 
-func (ms *mongoService)DeleteObject(bucket, object, version string, versionEnabled bool) error {
-	
-	session, err := mgo.Dial(ms.servers)
+func (ms *mongoService) DeleteObject(bucket, object, version string, versionEnabled bool) error {
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
 		return err
-    	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 
 	if versionEnabled && version == "" {
 		var objectVersion db.ObjectVersion
 		collection := session.DB("galaxy_s3_gateway").C("object_versions")
-		err := collection.Find(bson.M{"_id": bucket+"/"+object}).One(&objectVersion)
+		err := collection.Find(bson.M{"_id": bucket + "/" + object}).One(&objectVersion)
 		if err != nil {
 			// 如果version未找到,可能是由于此前bucket未开启versioning功能
 			// 此时不返回错误,而是将version设置为""
@@ -156,7 +143,7 @@ func (ms *mongoService)DeleteObject(bucket, object, version string, versionEnabl
 			} else {
 				return err
 			}
-		// 代表删除最新版本的
+			// 代表删除最新版本的
 		} else {
 			version = objectVersion.Version
 		}
@@ -166,7 +153,7 @@ func (ms *mongoService)DeleteObject(bucket, object, version string, versionEnabl
 	// query := collection.Find(bson.M{"object_name": object, "version": version, "delete_marker": false})
 	query := collection.Find(bson.M{"object_name": object, "version": version})
 	change := mgo.Change{
-		Update: bson.M{"$set": bson.M{"delete_marker": true}},
+		Update:    bson.M{"$set": bson.M{"delete_marker": true}},
 		ReturnNew: false,
 	}
 	var res db.Object

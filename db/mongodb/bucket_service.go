@@ -2,22 +2,19 @@ package mongodb
 
 import (
 	"galaxy-s3-gateway/db"
-	"strings"
-	"sort"
-	"time"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"sort"
+	"strings"
+	"time"
 )
 
 func (ms *mongoService) PutBucket(bucket *db.Bucket) error {
-
-	session, err := mgo.Dial(ms.servers)
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
-		return err
-    	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
+		return nil
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 
 	collection := session.DB("galaxy_s3_gateway").C("buckets")
 	err = collection.Insert(bucket)
@@ -28,14 +25,11 @@ func (ms *mongoService) PutBucket(bucket *db.Bucket) error {
 }
 
 func (ms *mongoService) ListUserBuckets(uid string) ([]*db.Bucket, error) {
-
-	session, err := mgo.Dial(ms.servers)
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
 		return nil, err
-    	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 
 	buckets := make([]*db.Bucket, 0)
 	collection := session.DB("galaxy_s3_gateway").C("buckets")
@@ -48,14 +42,11 @@ func (ms *mongoService) ListUserBuckets(uid string) ([]*db.Bucket, error) {
 }
 
 func (ms *mongoService) GetBucket(name string) (*db.Bucket, error) {
-
-	session, err := mgo.Dial(ms.servers)
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
 		return nil, err
-    	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 
 	collection := session.DB("galaxy_s3_gateway").C("buckets")
 
@@ -72,14 +63,11 @@ func (ms *mongoService) GetBucket(name string) (*db.Bucket, error) {
 }
 
 func (ms *mongoService) DeleteBucket(name string) error {
-	
-	session, err := mgo.Dial(ms.servers)
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
-		return err
-    	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
+		return nil
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 
 	collection := session.DB("galaxy_s3_gateway").C("objects")
 
@@ -125,15 +113,12 @@ func (ms *mongoService) DeleteBucket(name string) error {
 //func (items ListObjectItems) Less(i, j int) bool { return items[i].Key < items[j].Key }
 //func (items ListObjectItems) Swap(i, j int) { items[i], items[j] = items[j], items[i] }
 
-func (ms *mongoService) ListObjectsInBucket(bucketName, prefix, delimiter, marker string, max int) ([]*db.ListObjectItem, error){
-
-	session, err := mgo.Dial(ms.servers)
+func (ms *mongoService) ListObjectsInBucket(bucketName, prefix, delimiter, marker string, max int) ([]*db.ListObjectItem, error) {
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
 		return nil, err
-    	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 
 	collection := session.DB("galaxy_s3_gateway").C("objects")
 
@@ -141,7 +126,7 @@ func (ms *mongoService) ListObjectsInBucket(bucketName, prefix, delimiter, marke
 	var object db.Object
 	prefixReg := "^" + prefix
 
-	for ; len(items) < max;  {
+	for len(items) < max {
 		query := collection.Find(bson.M{"bucket": bucketName, "delete_marker": false, "object_name": bson.M{"$gt": marker, "$regex": bson.RegEx{prefixReg, "i"}}}).Sort("object_name").Limit(max)
 		cnt, err := query.Count()
 		if err != nil {
@@ -189,11 +174,11 @@ func (ms *mongoService) ListObjectsInBucket(bucketName, prefix, delimiter, marke
 				}
 				if !objectExist {
 					item := db.ListObjectItem{
-						Key: object.ObjectName,
+						Key:          object.ObjectName,
 						StorageClass: "STANDARD",
-						ETag: object.Etag,
+						ETag:         object.Etag,
 						LastModified: time.Unix(object.LastModified, 0).Format(time.RFC3339),
-						Size: object.Size,
+						Size:         object.Size,
 					}
 					items = append(items, &item)
 				}
@@ -207,13 +192,11 @@ func (ms *mongoService) ListObjectsInBucket(bucketName, prefix, delimiter, marke
 }
 
 func (ms *mongoService) UpdateBucket(bucket *db.Bucket) error {
-	session, err := mgo.Dial(ms.servers)
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
-		return err
-    	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
+		return nil
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 
 	collection := session.DB("galaxy_s3_gateway").C("buckets")
 	err = collection.UpdateId(bucket.BucketName, bucket)

@@ -1,15 +1,15 @@
 package mongodb
 
 import (
-	"strings"
-	"gopkg.in/mgo.v2"
 	"galaxy-s3-gateway/db"
+	"gopkg.in/mgo.v2"
+	"strings"
+	"time"
 )
 
-type MongoDriver struct { }
+type MongoDriver struct{}
 
 func (mgd *MongoDriver) Open(args ...interface{}) (db.Service, error) {
-
 	mgServer := ""
 	for _, s := range args {
 		mgServer = mgServer + s.(string) + ","
@@ -37,8 +37,9 @@ func (mgd *MongoDriver) Open(args ...interface{}) (db.Service, error) {
 	if err != nil {
 		return nil, err
 	}
-	
-	return &mongoService{mgServer}, nil
+
+	pool := NewUnfixedSessionPool(10, time.Second*5)
+	return &mongoService{mgServer, pool}, nil
 }
 
 //func Init() error {

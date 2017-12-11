@@ -7,14 +7,11 @@ import (
 )
 
 func (ms *mongoService) InitMultipartUpload(uploadInfo *db.UploadInfo) error {
-	
-	session, err := mgo.Dial(ms.servers)
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
 		return err
- 	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 
 	collection := session.DB("galaxy_s3_gateway").C("upload_infos")
 	if err := collection.Insert(uploadInfo); err != nil {
@@ -24,14 +21,11 @@ func (ms *mongoService) InitMultipartUpload(uploadInfo *db.UploadInfo) error {
 }
 
 func (ms *mongoService) GetUpload(uploadId string) (*db.UploadInfo, error) {
-
-	session, err := mgo.Dial(ms.servers)
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
 		return nil, err
- 	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 
 	collection := session.DB("galaxy_s3_gateway").C("upload_infos")
 	var upload db.UploadInfo
@@ -46,14 +40,11 @@ func (ms *mongoService) GetUpload(uploadId string) (*db.UploadInfo, error) {
 }
 
 func (ms *mongoService) SetUploadAborted(uploadId string) error {
-
-	session, err := mgo.Dial(ms.servers)
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
 		return err
-    	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 
 	collection := session.DB("galaxy_s3_gateway").C("upload_infos")
 	err = collection.UpdateId(uploadId, bson.M{"$set": bson.M{"is_abort": true}})
@@ -64,14 +55,11 @@ func (ms *mongoService) SetUploadAborted(uploadId string) error {
 }
 
 func (ms *mongoService) ListUploadAllParts(uploadId string) ([]*db.UploadPart, error) {
-
-	session, err := mgo.Dial(ms.servers)
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
 		return nil, err
-    	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 
 	collection := session.DB("galaxy_s3_gateway").C("upload_parts")
 
@@ -83,16 +71,12 @@ func (ms *mongoService) ListUploadAllParts(uploadId string) ([]*db.UploadPart, e
 	return res, nil
 }
 
-func (ms *mongoService) ListUploadParts(uploadId string, marker int, max int) ([]*db.UploadPart, error){
-
-	session, err := mgo.Dial(ms.servers)
+func (ms *mongoService) ListUploadParts(uploadId string, marker int, max int) ([]*db.UploadPart, error) {
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
 		return nil, err
-    	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 	collection := session.DB("galaxy_s3_gateway").C("upload_parts")
 
 	res := make([]*db.UploadPart, 0)
@@ -130,15 +114,11 @@ func (ms *mongoService) GetLastUploadPart(uploadId string) (int, error) {
 }
 
 func (ms *mongoService) PutUploadPart(part *db.UploadPart) error {
-
-	session, err := mgo.Dial(ms.servers)
+	session, err := ms.sessions.GetSession(ms.servers)
 	if err != nil {
 		return err
- 	}
-
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-
+	}
+	defer ms.sessions.ReturnSession(session, SessionOK)
 	collection := session.DB("galaxy_s3_gateway").C("upload_parts")
 	if err := collection.Insert(part); err != nil {
 		return err
