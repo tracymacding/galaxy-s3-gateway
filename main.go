@@ -6,6 +6,7 @@ import (
 	_ "galaxy-s3-gateway/db/mongodb"
 	_ "galaxy-s3-gateway/db/mysql"
 	"galaxy-s3-gateway/fs"
+	"galaxy-s3-gateway/context"
 	"galaxy-s3-gateway/handler/bucket"
 	"galaxy-s3-gateway/handler/common"
 	"galaxy-s3-gateway/handler/object"
@@ -102,7 +103,7 @@ func startServe(router *mux.Router) {
 	go func() {
 		http.ListenAndServe(":3030", nil)
 	}()
-	http.ListenAndServe(*listenAddr, router)
+	http.ListenAndServe(*listenAddr, context.ClearHandler(router))
 }
 
 func main() {
