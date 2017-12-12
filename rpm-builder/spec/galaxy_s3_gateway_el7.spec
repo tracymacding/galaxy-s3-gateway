@@ -106,7 +106,6 @@ fi
 /usr/script/galaxy-s3-gateway/galaxy-s3-gateway.cfg
 
 %post -n galaxy-s3-gateway
-mkdir -p /opt/galaxy/galaxy-s3-gateway/bin
 cp -d /usr/script/galaxy-s3-gateway/run.sh /opt/galaxy/galaxy-s3-gw/bin/run.sh
 cp -d /usr/script/galaxy-s3-gateway/galaxy-s3-gateway.cfg /opt/galaxy/galaxy-s3-gw/bin/galaxy-s3-gateway.cfg
 cp -d /usr/bin/galaxy-s3-gateway /opt/galaxy/galaxy-s3-gw/bin/galaxy-s3-gateway
