@@ -50,7 +50,8 @@ func (res *GetBucketResultV2) ContentType() string {
 }
 
 func (res *GetBucketResultV2) ContentBody() ([]byte, error) {
-	return handler.FormatS3Response(res, res.ContentType())
+	body, err := handler.FormatS3Response(res, res.ContentType())
+	return body, err
 }
 
 func (resp *GetBucketResultV2) Send(w http.ResponseWriter) {
@@ -63,6 +64,7 @@ func (resp *GetBucketResultV2) Send(w http.ResponseWriter) {
 
 type GetBucketResultV1 struct {
 	XMLName   xml.Name `xml:"ListBucketResult"`
+	Xmlns     string   `xml:"xmlns,attr"`
 	Name      string   `xml:"Name"`
 	Prefix    string   `xml:"Prefix"`
 	Delimiter string   `xml:"Delimiter"`
@@ -76,6 +78,7 @@ type GetBucketResultV1 struct {
 
 func (resp *GetBucketResultV1) Send(w http.ResponseWriter) {
 	body, _ := xml.MarshalIndent(resp, "", " ")
+	body = []byte(xml.Header + string(body))
 	w.Header().Set("Content-Type", "application/xml")
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
 	w.WriteHeader(http.StatusOK)
@@ -108,6 +111,7 @@ func wrapGetBucketResponseV1(bucket string, items []*db.ListObjectItem, prefixes
 		NextMarker: nextMarker,
 		Contents: items,
 		CommonPrefixes: prefixes,
+		Xmlns:  "http://s3.amazonaws.com/doc/2006-03-01/",
 	}
 }
 

@@ -13,10 +13,10 @@ import (
 	"time"
 )
 
-type User struct {
-	ID string
-	DisplayName string
-}
+// type User struct {
+//	ID string
+//	DisplayName string
+//}
 
 type Bucket struct {
 	XMLName       xml.Name  `xml:"Bucket"`
@@ -26,7 +26,7 @@ type Bucket struct {
 
 type ListAllMyBucketsResult struct {
 	XMLName   xml.Name  `xml:"ListAllMyBucketsResult"`
-	Owner     *User     `xml:"Owner"`     
+	Owner     *db.User  `xml:"Owner"`     
 	Buckets   []*Bucket `xml:"Buckets"`
 }
 
@@ -46,7 +46,7 @@ func (resp *ListAllMyBucketsResult) Send(w http.ResponseWriter) {
 	w.Write(body)
 }
 
-func wrapListAllMyBucketsResponse(me *User, buckets []*Bucket) handler.S3Responser {
+func wrapListAllMyBucketsResponse(me *db.User, buckets []*Bucket) handler.S3Responser {
 	return &ListAllMyBucketsResult{
 		Owner: me,
 		Buckets: buckets,
@@ -79,7 +79,7 @@ func ListBucketsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		buckets = append(buckets, bucket)
 	}
-	me := &User{
+	me := &db.User{
 		ID: "12345",
 		DisplayName: "fake user",
 	}

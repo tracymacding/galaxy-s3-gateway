@@ -24,12 +24,18 @@ type ObjectService interface {
 	PutObjectFromMultipartUpload(object *Object, versionEnabled bool) error
 }
 
+type User struct {
+     ID string
+     DisplayName string
+}
+
 type ListObjectItem struct {
 	Key  string
 	ETag string
 	Size int64
 	LastModified string
 	StorageClass string
+	Owner        *User
 }
 
 type ListObjectItems []*ListObjectItem

@@ -69,6 +69,7 @@ func setupRouter() *mux.Router {
 	router.HandleFunc("/", bucket.ListBucketsHandler).Methods("GET")
 	router.HandleFunc("/{bucket}/", bucket.HeadBucketHandler).Methods("HEAD")
 	router.HandleFunc("/{bucket}/", bucket.GetBucketACLHandler).Methods("GET").Queries("acl", "{acl}")
+	router.HandleFunc("/{bucket}/", bucket.GetBucketUploadsHandler).Methods("GET").Queries("uploads", "{uploads}")
 	router.HandleFunc("/{bucket}/", bucket.GetBucketHandler).Methods("GET")
 	router.HandleFunc("/{bucket}/", bucket.PutBucketVersionHandler).Methods("PUT").Queries("versioning", "{versioning}")
 	router.HandleFunc("/{bucket}/", bucket.PutBucketHandler).Methods("PUT")

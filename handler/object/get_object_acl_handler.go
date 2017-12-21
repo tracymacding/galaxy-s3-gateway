@@ -5,7 +5,6 @@ import (
 	"galaxy-s3-gateway/db"
 	"galaxy-s3-gateway/gerror"
 	"galaxy-s3-gateway/handler"
-	"galaxy-s3-gateway/handler/bucket"
 	"galaxy-s3-gateway/mux"
 	"encoding/xml"
 	"net/http"
@@ -16,7 +15,7 @@ type Grantee struct {
 	Namespace   string       `xml:"xmlns:xsi,attr"`
 	Type        string       `xml:"xsi:type,attr"`
 	URI         string       `xml:"URI,omitempty"`
-	User        *bucket.User `xml:"Owner"`
+	User        *db.User     `xml:"Owner"`
 }
 
 type Grant struct {
@@ -31,7 +30,7 @@ type ControlList struct {
 type ObjectACLResult struct {
 	etag         string
 	XMLName      xml.Name       `xml:"AccessControlPolicy"`
-	Owner        *bucket.User   `xml:"Owner"`
+	Owner        *db.User       `xml:"Owner"`
 	ControlLists []*ControlList `xml:"AccessControlList"`
 }
 
@@ -45,7 +44,7 @@ func (resp *ObjectACLResult) Send(w http.ResponseWriter) {
 }
 
 func wrapS3ObjectACLResponse(acl, etag string) *ObjectACLResult {
-	owner := &bucket.User{
+	owner := &db.User{
 		ID: "12345",
 		DisplayName: "fake user",
 	}

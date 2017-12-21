@@ -173,12 +173,18 @@ func (ms *mongoService) ListObjectsInBucket(bucketName, prefix, delimiter, marke
 					}
 				}
 				if !objectExist {
+					me := &db.User{
+						ID: "12345",
+						DisplayName: "fake user",
+					}
 					item := db.ListObjectItem{
 						Key:          object.ObjectName,
 						StorageClass: "STANDARD",
 						ETag:         object.Etag,
 						LastModified: time.Unix(object.LastModified, 0).Format(time.RFC3339),
+						// LastModified: time.Unix(object.LastModified, 0).Format("Mon, 02 Jan 2006 15:04:05 GMT"),
 						Size:         object.Size,
+						Owner:        me,
 					}
 					items = append(items, &item)
 				}

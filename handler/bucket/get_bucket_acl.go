@@ -15,7 +15,7 @@ type Grantee struct {
 	Namespace   string    `xml:"xmlns:xsi,attr"`
 	Type        string    `xml:"xsi:type,attr"`
 	URI         string    `xml:"URI,omitempty"`
-	User        *User     `xml:"Owner"`
+	User        *db.User  `xml:"Owner"`
 }
 
 type Grant struct {
@@ -29,7 +29,7 @@ type ControlList struct {
 
 type BucketACLResult struct {
 	XMLName      xml.Name       `xml:"AccessControlPolicy"`
-	Owner        *User          `xml:"Owner"`
+	Owner        *db.User       `xml:"Owner"`
 	ControlLists []*ControlList `xml:"AccessControlList"`
 }
 
@@ -42,7 +42,7 @@ func (resp *BucketACLResult) Send(w http.ResponseWriter) {
 }
 
 func wrapS3BucketACLResponse(acl string) *BucketACLResult {
-	owner := &User{
+	owner := &db.User{
 		ID: "12345",
 		DisplayName: "fake user",
 	}
